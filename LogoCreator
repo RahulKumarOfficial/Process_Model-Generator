@@ -1,0 +1,61 @@
+import os
+import StringIO
+import weblogolib as w
+
+class RefSeqColor(w.ColorRule):
+    """
+    Color the given reference sequence in its own color, so you can easily see 
+    which positions match that sequence and which don't.
+    """
+
+    def __init__(self, ref_seq, color, description=None):
+        self.ref_seq = ref_seq
+        self.color = w.Color.from_string(color)
+        self.description = description
+
+    def symbol_color(self, seq_index, symbol, rank):
+        if symbol == self.ref_seq[3]:
+            return self.color
+
+baserules = [
+            w.SymbolColor("A", "violet", "polar"),
+            w.SymbolColor("B", "green", "neutral"),
+            w.SymbolColor("C", "blue", "basic"),
+            w.SymbolColor("D", "red", "acidic"),
+            w.SymbolColor("E", "aqua", "hydrophobic"),
+	    w.SymbolColor("F", "orange", "hydrophobic"),
+            w.SymbolColor("G", "purple", "hydrophobic"),
+	    w.SymbolColor("H", "pink", "hydrophobic"),
+	    w.SymbolColor("I", "indigo", "hydrophobic"),
+	    w.SymbolColor("J", "brown", "hydrophobic"),
+	    w.SymbolColor("-", "white", "hydrophobic")
+
+        ]
+
+protein_alphabet = w.Alphabet('ACDEFGHIKLMNOPQRSTUVWYBJZX*-adefghiklmnopqrstuvwybjzx', [])
+
+def plotseqlogo(refseq, mseqs, name):
+    fasta = "> \n" + "\n> \n".join(mseqs)
+    seqs = w.read_seq_data(StringIO.StringIO(fasta), alphabet=protein_alphabet)
+
+    colorscheme = w.ColorScheme([RefSeqColor(refseq, "orange", "refseq")] + baserules,
+                                alphabet = protein_alphabet)
+
+    data = w.LogoData.from_seqs(seqs)
+    options = w.LogoOptions()
+    # options.logo_title = name
+    options.show_fineprint = True
+    options.yaxis_label = ""
+    options.yaxis_label
+    options.xaxis_label = "Traces"
+    options.color_scheme = colorscheme
+    mformat = w.LogoFormat(data, options)
+
+    fname = "%s.pdf" % name
+    with open(fname, "wb") as f:
+        f.write(w.pdf_formatter(data, mformat))
+
+if __name__ == "__main__":
+    with open ("./OutputFileRefined.txt", "r") as myfile:
+    	data=myfile.readlines()
+    plotseqlogo("Plotted", data, "testdata")
